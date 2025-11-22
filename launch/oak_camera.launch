@@ -1,0 +1,11 @@
+<launch>
+    <!-- OAK-D Camera Publisher -->
+    <node pkg="oak_camera" type="oak_publisher.py" name="oak_camera_publisher" output="screen">
+        <param name="frame_id" value="oak_rgb_camera" />
+    </node>
+
+    <!-- Image Transport for compression -->
+    <node pkg="image_transport" type="republish" name="oak_image_compressor"
+          args="raw in:=/oak/rgb/image_raw compressed out:=/camera/image" output="screen">
+    </node>
+</launch>
