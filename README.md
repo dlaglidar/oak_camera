@@ -29,37 +29,79 @@ roslaunch oak_camera oak_camera.launch
 
 ## Published Topics
 
-- `/oak/rgb/image_raw` - Raw RGB images (sensor_msgs/Image)
-- `/camera/image/compressed` - Compressed JPEG images (sensor_msgs/CompressedImage)
+### Raw Topics (high bandwidth):
+- `/oak/rgb/image_raw` - RGB camera (640x360 @ 30 Hz, rgb8)
+- `/oak/left/image_raw` - Left stereo camera (640x400 @ 30 Hz, mono8)
+- `/oak/right/image_raw` - Right stereo camera (640x400 @ 30 Hz, mono8)
+- `/oak/stereo/depth` - Depth image (16UC1, aligned to RGB)
+- `/oak/imu` - IMU data (200 Hz, accel + gyro)
 
-## Integration with FAST-LIVO2
-
-### Option 1: Use compressed images (recommended for smaller bag files)
-In your FAST-LIVO2 launch file, remap the camera topic:
-```xml
-<remap from="/camera/image" to="/camera/image/compressed"/>
-```
-
-### Option 2: Use raw images
-```xml
-<remap from="/camera/image" to="/oak/rgb/image_raw"/>
-```
+### Compressed Topics (recommended for recording):
+- `/oak/rgb/image/compressed` - RGB JPEG compressed
+- `/oak/left/image/compressed` - Left stereo JPEG compressed
+- `/oak/right/image/compressed` - Right stereo JPEG compressed
+- `/oak/stereo/depth/compressedDepth` - Depth compressed
+- `/oak/imu` - IMU (no compression needed)
 
 ## Recording Data
 
-### Compressed (smaller files):
+### Record all sensors (compressed):
 ```bash
-rosbag record /camera/image/compressed /livox/lidar /livox/imu -O dataset.bag
+rosbag record \
+  /oak/rgb/image/compressed \
+  /oak/left/image/compressed \
+  /oak/right/image/compressed \
+  /oak/stereo/depth/compressedDepth \
+  /oak/imu \
+  /livox/lidar \
+  /livox/imu \
+  -O full_dataset.bag
 ```
 
-### Raw images:
+### Record for FAST-LIVO2 (RGB + LiDAR + IMU):
 ```bash
-rosbag record /oak/rgb/image_raw /livox/lidar /livox/imu -O dataset.bag
+rosbag record \
+  /oak/rgb/image/compressed \
+  /livox/lidar \
+  /livox/imu \
+  -O fast_livo_dataset.bag
+```
+
+### Record stereo + depth for 3D reconstruction:
+```bash
+rosbag record \
+  /oak/left/image/compressed \
+  /oak/right/image/compressed \
+  /oak/stereo/depth/compressedDepth \
+  /oak/imu \
+  -O stereo_dataset.bag
+```
+
+## Integration with FAST-LIVO2
+
+Remap the camera topic in your FAST-LIVO2 launch file:
+```xml
+<remap from="/camera/image" to="/oak/rgb/image/compressed"/>
 ```
 
 ## Camera Specifications
 
-- Resolution: 640x480
+**RGB Camera (IMX378):**
+- Resolution: 640x360 (downscaled from 1080p)
 - Frame rate: 30 FPS
 - Encoding: RGB8
-- Frame ID: oak_rgb_camera
+
+**Stereo Cameras:**
+- Resolution: 640x400
+- Frame rate: 30 FPS
+- Encoding: MONO8
+- Baseline: ~7.5 cm
+
+**Depth:**
+- Range: 0.2m - 10m
+- Encoding: 16-bit unsigned (mm)
+- Aligned to RGB frame
+
+**IMU:**
+- Accelerometer + Gyroscope
+- Rate: 200 Hz

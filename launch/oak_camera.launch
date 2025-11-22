@@ -1,11 +1,27 @@
 <launch>
-    <!-- OAK-D Camera Publisher -->
-    <node pkg="oak_camera" type="oak_publisher.py" name="oak_camera_publisher" output="screen">
-        <param name="frame_id" value="oak_rgb_camera" />
+    <!-- OAK-D Pro W Camera Publisher with all sensors -->
+    <node pkg="oak_camera" type="oak_publisher.py" name="oak_camera_publisher" output="screen" />
+
+    <!-- Image compression for all camera streams -->
+
+    <!-- RGB camera compression -->
+    <node pkg="image_transport" type="republish" name="oak_rgb_compressor"
+          args="raw in:=/oak/rgb/image_raw compressed out:=/oak/rgb/image" output="screen">
     </node>
 
-    <!-- Image Transport for compression -->
-    <node pkg="image_transport" type="republish" name="oak_image_compressor"
-          args="raw in:=/oak/rgb/image_raw compressed out:=/camera/image" output="screen">
+    <!-- Left camera compression -->
+    <node pkg="image_transport" type="republish" name="oak_left_compressor"
+          args="raw in:=/oak/left/image_raw compressed out:=/oak/left/image" output="screen">
     </node>
+
+    <!-- Right camera compression -->
+    <node pkg="image_transport" type="republish" name="oak_right_compressor"
+          args="raw in:=/oak/right/image_raw compressed out:=/oak/right/image" output="screen">
+    </node>
+
+    <!-- Depth compression (using compressedDepth transport) -->
+    <node pkg="image_transport" type="republish" name="oak_depth_compressor"
+          args="raw in:=/oak/stereo/depth compressedDepth out:=/oak/stereo/depth" output="screen">
+    </node>
+
 </launch>
